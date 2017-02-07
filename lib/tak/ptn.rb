@@ -2,6 +2,8 @@ module Tak
   class PTN
     NOTATION_REGEX = /(?<number>\d+)?(?<special_piece>[CS])?(?<position>[a-h][1-8])((?<direction>[<>+-])(?<stack>\d+)?)?/i
 
+    attr_reader :errors, :ptn_match
+
     def initialize(notation, board_size = 5)
       @ptn_match  = NOTATION_REGEX.match(notation)
       @board_size = board_size
@@ -18,7 +20,7 @@ module Tak
     end
 
     def stack_total
-      @stack_total ||= @stack.chars.reduce(0) { |a, s| a + s.to_i }
+      @stack_total ||= @stack ? @stack.chars.reduce(0) { |a, s| a + s.to_i } : 0
     end
 
     def error(msg)
@@ -27,21 +29,32 @@ module Tak
 
     # Placement of a special piece (Capstone or Standing) cannot also be a move
     def movement_and_placement?
-      @special_piece && @number || @direction || @stack
+      !!(@special_piece && @number || @direction || @stack)
     end
 
     def over_stack?
-      stack_total > @number
+      stack_total > (@number.to_i || 0)
+    end
+
+    def under_stack?
+      stack_total < (@number.to_i || 0)
     end
 
     def above_handsize?
-      stack_total > @board_size || @number > @board_size
+      stack_total > @board_size || (@number.to_i || 0) > @board_size
     end
 
     def out_of_bounds?
       x, y = @position.chars
 
-      x.to_i > @board_size || ('a'..'h').to_a.index(y) + 1 > @board_size
+      ('a'..'h').to_a.index(x) + 1 > @board_size || y.to_i > @board_size
+    end
+
+    def distrubutes_out_of_bounds?
+      x, y = @position.chars
+
+      ('a'..'h').to_a.index(x) + 1 + stack_total > @board_size ||
+      y.to_i + stack_total > @board_size
     end
 
     def valid?
@@ -51,9 +64,11 @@ module Tak
 
         error 'Cannot move more pieces than the board size!'      if above_handsize?
         error 'Cannot distribute more pieces than were picked up' if over_stack?
+        error 'Cannot distribute less pieces than were picked up' if under_stack?
         error 'Cannot move and place a piece'                     if movement_and_placement?
+        error 'Cannot place or move a piece out of bounds'        if out_of_bounds?
 
-        @errors.any?
+        @errors.none?
       end
     end
   end
