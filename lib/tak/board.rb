@@ -50,8 +50,32 @@ module Tak
       end
     end
 
+    # =====================
+    # MOVE - make a class later
+    # =====================
+
+    # MOVE
+    def distribute_pieces(move)
+      x, y         = move.position
+      moved_square = @board[x][y]
+    end
+
+    # MOVE
+    def move_coordinates(move)
+      x, y = move.position
+      times = move.size.times
+
+      case move.direction
+      when '+' then times.map { |n| [x,     y + n] }
+      when '-' then times.map { |n| [x,     y - n] }
+      when '<' then times.map { |n| [x - n, y]     }
+      when '>' then times.map { |n| [x + n, y + n] }
+      end
+    end
+
+    # MOVE
     def move!(ptn)
-      move = Tak::PTN.new(ptn)
+      move = Tak::PTN.new(ptn, 5)
 
       return false unless move.valid?
 
@@ -61,11 +85,16 @@ module Tak
       end
     end
 
+    # MOVE
     def place_piece(move)
       return false unless head_piece(move.x, move.y) == 'empty'
 
       @board[move.x][move.y].push(move.piece)
     end
+
+    # =====================
+    # MOVE
+    # =====================
 
     def head_piece(x, y)
       case @board[x][y].last

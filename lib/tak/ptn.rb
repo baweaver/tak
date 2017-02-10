@@ -39,6 +39,10 @@ module Tak
       @stack_total ||= @stack ? @stack.chars.reduce(0) { |a, s| a + s.to_i } : 0
     end
 
+    def size
+      stack_total
+    end
+
     def error(msg)
       @errors << msg
     end
