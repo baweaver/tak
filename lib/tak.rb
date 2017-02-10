@@ -5,3 +5,4 @@ module Tak
 end
 
 require 'tak/ptn'
+require 'tak/board'

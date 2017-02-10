@@ -19,6 +19,22 @@ module Tak
       @errors = []
     end
 
+    def type
+      if @direction
+        'movement'
+      else
+        'placement'
+      end
+    end
+
+    def x
+      alpha_range[@position.chars.first]
+    end
+
+    def y
+      @position.chars.last.to_i
+    end
+
     def stack_total
       @stack_total ||= @stack ? @stack.chars.reduce(0) { |a, s| a + s.to_i } : 0
     end
@@ -47,13 +63,13 @@ module Tak
     def out_of_bounds?
       x, y = @position.chars
 
-      ('a'..'h').to_a.index(x) + 1 > @board_size || y.to_i > @board_size
+      alpha_range[x] > @board_size || y.to_i > @board_size
     end
 
     def distrubutes_out_of_bounds?
       x, y = @position.chars
 
-      ('a'..'h').to_a.index(x) + 1 + stack_total > @board_size ||
+      alpha_range[x] + stack_total > @board_size ||
       y.to_i + stack_total > @board_size
     end
 
@@ -67,9 +83,14 @@ module Tak
         error 'Cannot distribute less pieces than were picked up' if under_stack?
         error 'Cannot move and place a piece'                     if movement_and_placement?
         error 'Cannot place or move a piece out of bounds'        if out_of_bounds?
+        error 'Cannot distribute pieces out of bounds'            if distrubutes_out_of_bounds?
 
         @errors.none?
       end
+    end
+
+    def alpha_range
+      @alpha_range ||= ('a'..'h').each.with_index(1).zip.flatten(1).to_h
     end
   end
 end
