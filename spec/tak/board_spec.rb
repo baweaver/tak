@@ -2,6 +2,10 @@ require "spec_helper"
 
 
 describe Tak::Board do
+  let(:tak_board) {
+    Tak::Board.new(board_size).tap { |b| b.board = board }
+  }
+
   describe '.initialize' do
     it 'creates a blank board' do
       board = Tak::Board.new(5)
@@ -11,60 +15,91 @@ describe Tak::Board do
     end
   end
 
-  describe 'path test' do
-    it 'finds a road' do
-      board = Tak::Board.new(3)
-      board.board = [
-        [%w(Cw), %w(b), %w()],
-        [%w(w),  %w(w), %w(Cb)],
-        [%w(b),  %w(w), %w(b)],
+  describe 'flat_counts' do
+    let(:board_size) { 3 }
+    let(:board) {
+      [
+        [%w(w), %w(b), %w()],
+        [%w(),  %w(),  %w()],
+        [%w(),  %w(w), %w(b)],
       ]
+    }
 
-      expect(board.road_win?(:white)).to be true
+    it 'will return the count of "visible" flats' do
+      expect(tak_board.flat_counts).to eq({
+        white: 2, black: 2
+      })
+    end
+  end
 
-      board2 = Tak::Board.new(3)
-      board2.board = [
-        [%w(b Cw), %w(b),   %w()],
-        [%w(w),    %w(b w), %w(w)],
-        [%w(b),    %w(w b), %w(b)],
-      ]
+  describe 'road_win?' do
+    context 'When a win is present for white' do
+      let(:board_size) { 3 }
+      let(:board) {
+        [
+          [%w(w), %w(b), %w()],
+          [%w(w), %w(w), %w(b)],
+          [%w(b), %w(w), %w(b)],
+        ]
+      }
 
-      expect(board2.road_win?(:white)).to be true
+      it 'recognizes the white win' do
+        expect(tak_board.road_win?(:white)).to be true
+      end
+    end
 
-      board3 = Tak::Board.new(3)
-      board3.board = [
-        [%w(b Cw), %w(b),   %w()],
-        [%w(w),    %w(b w), %w()],
-        [%w(b),    %w(w b), %w(b)],
-      ]
+    context 'When a win is present for white on a large complicated board' do
+      let(:board_size) { 8 }
+      let(:board) {
+        [
+          [%w(w), %w(w),  %w(),   %w(),   %w(),   %w(),   %w(),  %w()],
+          [%w(),  %w(Cw), %w(w),  %w(),   %w(),   %w(),   %w(),  %w()],
+          [%w(),  %w(b),  %w(w),  %w(w),  %w(),   %w(),   %w(),  %w()],
+          [%w(b), %w(),   %w(Cb), %w(w),  %w(w),  %w(Sb), %w(),  %w()],
+          [%w(),  %w(),   %w(),   %w(Sb), %w(w),  %w(),   %w(),  %w()],
+          [%w(b), %w(),   %w(),   %w(),   %w(w),  %w(w),  %w(),  %w()],
+          [%w(),  %w(),   %w(),   %w(),   %w(Sb), %w(w),  %w(w), %w()],
+          [%w(b), %w(),   %w(),   %w(),   %w(w),  %w(Sb), %w(w), %w()],
+        ]
+      }
 
-      expect(board3.road_win?(:white)).to be false
+      it 'recognizes the white win' do
+        expect(tak_board.road_win?(:white)).to be true
+      end
+    end
 
-      board4 = Tak::Board.new(6)
-      board4.board = [
-        [%w(w), %w(w), %w(),  %w(),  %w(),  %w()],
-        [%w(),  %w(w), %w(w), %w(),  %w(),  %w()],
-        [%w(),  %w(),  %w(w), %w(w), %w(),  %w()],
-        [%w(),  %w(),  %w(),  %w(w), %w(w), %w()],
-        [%w(),  %w(),  %w(),  %w(),  %w(w), %w()],
-        [%w(),  %w(),  %w(),  %w(),  %w(b), %w()],
-      ]
+    context 'When a white road is not present' do
+      let(:board_size) { 3 }
+      let(:board) {
+        [
+          [%w(w), %w(b), %w()],
+          [%w(w), %w(w), %w(b)],
+          [%w(b), %w(),  %w(b)],
+        ]
+      }
 
-      expect(board4.road_win?(:white)).to be false
+      it 'will not recognize a white winner' do
+        expect(tak_board.road_win?(:white)).to be false
+      end
+    end
 
-      board5 = Tak::Board.new(8)
-      board5.board = [
-        [%w(w), %w(w), %w(),  %w(),  %w(),  %w(),  %w(),  %w()],
-        [%w(),  %w(w), %w(w), %w(),  %w(),  %w(),  %w(),  %w()],
-        [%w(),  %w(),  %w(w), %w(w), %w(),  %w(),  %w(),  %w()],
-        [%w(),  %w(),  %w(),  %w(w), %w(w), %w(),  %w(),  %w()],
-        [%w(),  %w(),  %w(),  %w(),  %w(w), %w(),  %w(),  %w()],
-        [%w(),  %w(),  %w(),  %w(),  %w(w), %w(),  %w(),  %w()],
-        [%w(),  %w(),  %w(),  %w(),  %w(w), %w(),  %w(),  %w()],
-        [%w(),  %w(),  %w(),  %w(),  %w(w), %w(),  %w(),  %w()],
-      ]
+    context 'When a black win is present and a white win is being checked for' do
+      let(:board_size) { 3 }
+      let(:board) {
+        [
+          [%w(w), %w(b), %w()],
+          [%w(w), %w(w), %w(b)],
+          [%w(b), %w(b), %w(b)],
+        ]
+      }
 
-      expect(board5.road_win?(:white)).to be true
+      it 'will not recognize a white winner' do
+        expect(tak_board.road_win?(:white)).to be false
+      end
+
+      it 'will recognize a black winner when asked' do
+        expect(tak_board.road_win?(:black)).to be true
+      end
     end
   end
 end

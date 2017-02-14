@@ -13,6 +13,17 @@ module Tak
       @board = generate_board(ptn)
     end
 
+    def flat_counts
+      count_hash = Hash.new { |h,k| h[k] = 0 }
+
+      @board.each_with_object(count_hash) do |row, counts|
+        row.each do |cell|
+          counts[:white] += 1 if cell.last == 'w'
+          counts[:black] += 1 if cell.last == 'b'
+        end
+      end
+    end
+
     def road_win?(color)
       bit_board = @board.map { |row|
         row.map { |cell| ROAD[color].include?(cell.last) ? 1 : 0 }
@@ -28,8 +39,8 @@ module Tak
       x < 0 || y < 0 || x > @size - 1 || y > @size - 1
     end
 
-    def path_search(x, y, direction, bit_board, traversed = {})
-      return false if (out_of_bounds(x,y) || traversed["#{x}:#{y}"])
+    def path_search(x, y, direction, bit_board, traversed = visited_board)
+      return false if out_of_bounds(x,y) || traversed[x][y]
 
       piece_value = bit_board[x][y]
       return false if (piece_value == 0)
@@ -41,41 +52,21 @@ module Tak
       if horizontal_end || vertical_end || neutral_end
         true
       else
-        new_traversed = {"#{x}:#{y}" => true}.merge! traversed
+        traversed[x][y] = true
 
-        path_search(x + 1, y,     direction, bit_board, new_traversed) ||
-        path_search(x - 1, y,     direction, bit_board, new_traversed) ||
-        path_search(x,     y + 1, direction, bit_board, new_traversed) ||
-        path_search(x,     y - 1, direction, bit_board, new_traversed)
+        path_search(x + 1, y,     direction, bit_board, traversed) ||
+        path_search(x - 1, y,     direction, bit_board, traversed) ||
+        path_search(x,     y + 1, direction, bit_board, traversed) ||
+        path_search(x,     y - 1, direction, bit_board, traversed)
       end
     end
 
-    # =====================
-    # MOVE - make a class later
-    # =====================
-
-    # MOVE
-    def distribute_pieces(move)
-      x, y         = move.position
-      moved_square = @board[x][y]
+    def visited_board
+      Array.new(@size) { Array.new(@size, false) }
     end
 
-    # MOVE
-    def move_coordinates(move)
-      x, y = move.position
-      times = move.size.times
-
-      case move.direction
-      when '+' then times.map { |n| [x,     y + n] }
-      when '-' then times.map { |n| [x,     y - n] }
-      when '<' then times.map { |n| [x - n, y]     }
-      when '>' then times.map { |n| [x + n, y + n] }
-      end
-    end
-
-    # MOVE
     def move!(ptn)
-      move = Tak::PTN.new(ptn, 5)
+      move = Tak::Move.new(ptn, size)
 
       return false unless move.valid?
 
@@ -85,24 +76,22 @@ module Tak
       end
     end
 
-    # MOVE
-    def place_piece(move)
-      return false unless head_piece(move.x, move.y) == 'empty'
+    def distribute_pieces(move)
+      x, y  = move.origin
+      stack = @board[x][y].pop(move.size)
 
-      @board[move.x][move.y].push(move.piece)
+      move.coordinates.each do |(x, y)|
+        @board[x][y].push(stack.pop)
+      end
     end
 
-    # =====================
     # MOVE
-    # =====================
+    def place_piece(move)
+      x, y  = move.origin
 
-    def head_piece(x, y)
-      case @board[x][y].last
-      when /C/ then 'capstone'
-      when /S/ then 'wall'
-      when /./ then 'flat'
-      else          'empty'
-      end
+      return false unless @board[x][y].empty?
+
+      @board[x][y].push(move.piece)
     end
 
     private
