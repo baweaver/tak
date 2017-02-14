@@ -5,10 +5,18 @@ module Tak
 
     OBSTRUCTIONS = %w(Cw Cb Sw Sb)
 
-    def initialize(ptn, board)
-      @move   = Tak::PTN.new(ptn, board.size)
-      @board  = board
+    def initialize(ptn, tak_board)
+      @move   = Tak::PTN.new(ptn, tak_board.size)
+      @board  = tak_board.board
       @origin = [@move.x, @move.y]
+    end
+
+    def type
+      move.type
+    end
+
+    def piece
+      move.piece
     end
 
     def valid?
@@ -34,12 +42,13 @@ module Tak
       !!coordinates.find { |(x,y)| OBSTRUCTIONS.include?(@board[x][y].last) }
     end
 
-    # MOVE
     def coordinates
       x, y  = move.position
       times = move.size.times
 
-      @coordinates ||= case move.direction
+      return [[x,y]] if move.size.zero?
+
+      case move.direction
       when '+' then times.map { |n| [x,     y + n] }
       when '-' then times.map { |n| [x,     y - n] }
       when '<' then times.map { |n| [x - n, y]     }

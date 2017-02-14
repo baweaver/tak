@@ -2,11 +2,12 @@ module Tak
   class PTN
     NOTATION_REGEX = /(?<number>\d+)?(?<special_piece>[CS])?(?<position>[a-h][1-8])((?<direction>[<>+-])(?<stack>\d+)?)?/i
 
-    attr_reader :errors, :ptn_match
+    attr_reader :errors, :ptn_match, :direction
 
     def initialize(notation, board_size = 5)
       @ptn_match  = NOTATION_REGEX.match(notation)
       @board_size = board_size
+      @notation   = notation
 
       if @ptn_match
         @number        = @ptn_match[:number]
@@ -19,12 +20,20 @@ module Tak
       @errors = []
     end
 
+    def piece
+      "#{@special_piece}#{@position}"
+    end
+
     def type
       if @direction
         'movement'
       else
         'placement'
       end
+    end
+
+    def position
+      [x,y]
     end
 
     def x

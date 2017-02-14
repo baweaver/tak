@@ -6,6 +6,15 @@ describe Tak::Board do
     Tak::Board.new(board_size).tap { |b| b.board = board }
   }
 
+  let(:board_size) { 3 }
+  let(:board) {
+    [
+      [%w(w), %w(b), %w()],
+      [%w(),  %w(),  %w()],
+      [%w(),  %w(w), %w(b)],
+    ]
+  }
+
   describe '.initialize' do
     it 'creates a blank board' do
       board = Tak::Board.new(5)
@@ -15,16 +24,22 @@ describe Tak::Board do
     end
   end
 
-  describe 'flat_counts' do
-    let(:board_size) { 3 }
-    let(:board) {
-      [
-        [%w(w), %w(b), %w()],
-        [%w(),  %w(),  %w()],
-        [%w(),  %w(w), %w(b)],
-      ]
-    }
+  describe '#flat_winner' do
+    context 'No piece set is empty' do
+      it 'returns false' do
+        expect(tak_board.flat_winner).to eq(false)
+      end
+    end
 
+    context 'When a piece set is empty' do
+      it 'returns the winner' do
+        expect(tak_board).to receive(:empty_piece_set?) { true }
+        expect(tak_board.flat_winner).to eq(:tie)
+      end
+    end
+  end
+
+  describe '#flat_counts' do
     it 'will return the count of "visible" flats' do
       expect(tak_board.flat_counts).to eq({
         white: 2, black: 2
@@ -32,7 +47,7 @@ describe Tak::Board do
     end
   end
 
-  describe 'road_win?' do
+  describe '#road_win?' do
     context 'When a win is present for white' do
       let(:board_size) { 3 }
       let(:board) {
@@ -100,6 +115,14 @@ describe Tak::Board do
       it 'will recognize a black winner when asked' do
         expect(tak_board.road_win?(:black)).to be true
       end
+    end
+  end
+
+  describe '#move!' do
+    it 'makes a move' do
+      move = tak_board.move!('a1', :white)
+      puts tak_board
+      expect(move).to eq(true)
     end
   end
 end
