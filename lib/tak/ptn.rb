@@ -28,11 +28,11 @@ module Tak
       [x, y]
     end
 
-    def x
+    def y
       alpha_range[@position.chars.first] - 1
     end
 
-    def y
+    def x
       @position.chars.last.to_i - 1
     end
 

@@ -141,10 +141,10 @@ module Tak
         "#{c}: #{i} flats, #{set.flats} remaining pieces, #{set.capstones} remaining capstones"
       }.join("\n")
 
-      board_state = board.map.with_index { |row, i|
+      board_state = board.reverse.map.with_index { |row, i|
         row_head = "  #{size - i} "
 
-        row_head + row.reverse.map { |cell|
+        row_head + row.map { |cell|
           "[%#{max_size}s]" % cell.join(' ')
         }.join(' ')
       }.join("\n")
@@ -221,7 +221,7 @@ module Tak
     end
 
     def generate_board(ptn)
-      return Array.new(size) { Array.new(size) } unless ptn
+      return Array.new(size) { Array.new(size) { [] } } unless ptn
     end
   end
 end
