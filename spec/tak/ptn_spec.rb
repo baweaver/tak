@@ -8,11 +8,11 @@ describe Tak do
 
     describe 'coordinates' do
       it 'has an x coordinate' do
-        expect(Tak::PTN.new('d5').x).to eq(4)
+        expect(Tak::PTN.new('d5').x).to eq(3)
       end
 
       it 'has a y coordinate' do
-        expect(Tak::PTN.new('d5').y).to eq(5)
+        expect(Tak::PTN.new('d5').y).to eq(4)
       end
     end
 

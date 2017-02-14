@@ -120,9 +120,11 @@ describe Tak::Board do
 
   describe '#move!' do
     it 'makes a move' do
-      move = tak_board.move!('a1', :white)
-      puts tak_board
-      expect(move).to eq(true)
+      expect(tak_board.move!('a3', :white)).to eq(true)
+    end
+
+    it 'cannot place a piece that is not in the piece set of the player' do
+      expect(tak_board.move!('Ca3', :white)).to eq(false)
     end
   end
 end

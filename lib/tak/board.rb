@@ -92,7 +92,7 @@ module Tak
     def square_owner(x, y)
       return true if @board[x][y].empty?
 
-      @board[x][y].last.last == 'b' ? :black : :white
+      @board[x][y].last == 'b' ? :black : :white
     end
 
     def pieces_at(x, y)
@@ -100,13 +100,15 @@ module Tak
     end
 
     def move!(ptn, color)
-      move = Tak::Move.new(ptn, self)
+      move = Tak::Move.new(ptn, self, color)
 
       return false unless move.valid? && square_owner(*move.origin)
 
       case move.type
-      when 'movement'  then distribute_pieces(move)
-      when 'placement' then place_piece(move)
+      when 'movement'
+        distribute_pieces(move)
+      when 'placement'
+        place_piece(move, color)
       end
     end
 
@@ -118,24 +120,38 @@ module Tak
       end
     end
 
-    def place_piece(move)
-      pieces = pieces_at(*move.origin)
+    def place_piece(move, color)
+      square = pieces_at(*move.origin)
 
-      return false unless pieces.empty?
+      return false unless square.empty? && @piece_sets[color].remove(move.piece_type)
 
-      pieces.push(move.piece)
+      square.push(move.piece)
 
       true
     end
 
+    # Consider moving this all out into a board formatter later. It'd be cleaner.
+    #
+    # May Matz forgive me for my debugging code here.
     def to_s
       max_size = board.flatten(1).max.join(' ').size + 1
 
-      board.map { |row|
-        row.map { |cell|
+      counts = flat_counts.map { |c, i|
+        set = @piece_sets[c]
+        "#{c}: #{i} flats, #{set.flats} remaining pieces, #{set.capstones} remaining capstones"
+      }.join("\n")
+
+      board_state = board.map.with_index { |row, i|
+        row_head = "  #{size - i} "
+
+        row_head + row.reverse.map { |cell|
           "[%#{max_size}s]" % cell.join(' ')
         }.join(' ')
       }.join("\n")
+
+      footer = ('a'..'h').take(size).map { |c| "%#{max_size + 2}s" % c }.join(' ')
+
+      "#{counts}\n\n#{board_state}\n   #{footer}"
     end
 
     private

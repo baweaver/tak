@@ -2,7 +2,7 @@ module Tak
   class PTN
     NOTATION_REGEX = /(?<number>\d+)?(?<special_piece>[CS])?(?<position>[a-h][1-8])((?<direction>[<>+-])(?<stack>\d+)?)?/i
 
-    attr_reader :errors, :ptn_match, :direction
+    attr_reader :errors, :ptn_match, :direction, :special_piece
 
     def initialize(notation, board_size = 5)
       @ptn_match  = NOTATION_REGEX.match(notation)
@@ -20,28 +20,20 @@ module Tak
       @errors = []
     end
 
-    def piece
-      "#{@special_piece}#{@position}"
-    end
-
     def type
-      if @direction
-        'movement'
-      else
-        'placement'
-      end
+      @direction ? 'movement' : 'placement'
     end
 
     def position
-      [x,y]
+      [x, y]
     end
 
     def x
-      alpha_range[@position.chars.first]
+      alpha_range[@position.chars.first] - 1
     end
 
     def y
-      @position.chars.last.to_i
+      @position.chars.last.to_i - 1
     end
 
     def stack_total
@@ -74,15 +66,11 @@ module Tak
     end
 
     def out_of_bounds?
-      x, y = @position.chars
-
-      alpha_range[x] > @board_size || y.to_i > @board_size
+      x > @board_size || y.to_i > @board_size
     end
 
     def distrubutes_out_of_bounds?
-      x, y = @position.chars
-
-      alpha_range[x] + stack_total > @board_size ||
+      x + stack_total > @board_size ||
       y.to_i + stack_total > @board_size
     end
 

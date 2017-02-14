@@ -5,18 +5,27 @@ module Tak
 
     OBSTRUCTIONS = %w(Cw Cb Sw Sb)
 
-    def initialize(ptn, tak_board)
+    def initialize(ptn, tak_board, color)
       @move   = Tak::PTN.new(ptn, tak_board.size)
       @board  = tak_board.board
       @origin = [@move.x, @move.y]
+      @color  = color.to_s[0]
     end
 
     def type
       move.type
     end
 
+    def piece_type
+      case piece
+      when /C/ then :capstone
+      when /S/ then :standing
+      else :flatstone
+      end
+    end
+
     def piece
-      move.piece
+      "#{move.special_piece}#{@color}"
     end
 
     def valid?

@@ -21,6 +21,11 @@ module Tak
 
       @flats     = flats || default_flats
       @capstones = capstones || default_capstones
+
+      @pieces = {
+        capstone:  @capstones,
+        flatstone: @flats
+      }
     end
 
     # Whether or not the set is empty
@@ -39,13 +44,15 @@ module Tak
     #
     # @return [Boolean] Whether the removal was valid
     def remove(type)
+      return false if @pieces[type] - 1 < 0
+
       if type == :capstone
         @capstones -= 1
-        @capstones >= 0
       else
         @flats -= 1
-        @flats >= 0
       end
+
+      true
     end
   end
 end
