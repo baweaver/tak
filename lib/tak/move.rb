@@ -3,6 +3,7 @@ module Tak
     attr_reader :move
     attr_reader :origin
 
+    # Pieces that get in the way of a road
     OBSTRUCTIONS = %w(Cw Cb Sw Sb)
 
     def initialize(ptn, tak_board, color)

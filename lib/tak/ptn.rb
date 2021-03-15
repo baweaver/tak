@@ -1,6 +1,28 @@
 module Tak
   class PTN
-    NOTATION_REGEX = /(?<number>\d+)?(?<special_piece>[CS])?(?<position>[a-h][1-8])((?<direction>[<>+-])(?<stack>\d+)?)?/i
+    NOTATION_REGEX = /
+      (?<number>\d+)?
+      (?<special_piece>[CS])?
+      (?<position>[a-h][1-8])
+      (
+        (?<direction>[<>+-])
+        (?<stack>\d+)?
+      )?
+    /xi
+
+    KTN_SPECIAL_TO_PTN = {
+      'C' => 'C',
+      'W' => 'S',
+      nil => ''
+    }
+
+    KTN_PLACEMENT = 'P'
+    KTN_MOVEMENT  = 'M'
+
+    PTN_NORTH = '+'
+    PTN_SOUTH = '-'
+    PTN_RIGHT = '>'
+    PTN_LEFT  = '<'
 
     attr_reader :errors, :ptn_match, :direction, :special_piece
 
@@ -20,6 +42,10 @@ module Tak
       @errors = []
     end
 
+    def to_s
+      "#{@number}#{@special_piece}#{@position}#{@direction}#{@stack}"
+    end
+
     def type
       @direction ? 'movement' : 'placement'
     end
@@ -37,7 +63,7 @@ module Tak
     end
 
     def stack_total
-      @stack_total ||= @stack ? @stack.chars.reduce(0) { |a, s| a + s.to_i } : 0
+      @stack_total ||= @stack ? @stack.chars.sum(&:to_i) : 0
     end
 
     def size
@@ -54,15 +80,15 @@ module Tak
     end
 
     def over_stack?
-      stack_total > (@number.to_i || 0)
+      stack_total > @number.to_i
     end
 
     def under_stack?
-      stack_total < (@number.to_i || 0)
+      stack_total < @number.to_i
     end
 
     def above_handsize?
-      stack_total > @board_size || (@number.to_i || 0) > @board_size
+      stack_total > @board_size || @number.to_i > @board_size
     end
 
     def out_of_bounds?
@@ -92,6 +118,38 @@ module Tak
 
     def alpha_range
       @alpha_range ||= ('a'..'h').each.with_index(1).zip.flatten(1).to_h
+    end
+
+    def self.from_ktn(move)
+      move_type, *remainder = move.split(' ')
+
+      ptn_string =
+        case move_type
+        when KTN_PLACEMENT
+          square, special_piece = remainder
+          stone = KTN_SPECIAL_TO_PTN[special_piece]
+
+          "#{stone}#{square.downcase}"
+        when KTN_MOVEMENT
+          from_square, to_square, *distribution = remainder
+
+          from_square_col, from_square_row = from_square.chars
+          to_square_col,   to_square_row   = to_square.chars
+
+          direction = if from_square_col == to_square_col
+            to_square_row > from_square_row ? PTN_NORTH : PTN_SOUTH
+          else
+            to_square_col > from_square_col ? PTN_RIGHT : PTN_LEFT
+          end
+
+          hand_size = distribution.map(&:to_i).sum
+
+          "#{hand_size}#{from_square.downcase}#{direction}#{distribution.join}"
+        else
+          ''
+        end
+
+      new(ptn_string)
     end
   end
 end

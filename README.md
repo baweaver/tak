@@ -1,10 +1,6 @@
 # Tak
 
-** THIS IS PRERELEASE **
-
-Expect hackery for now.
-
-Ruby version of Tak. This is still in prerelease, I just like keeping my code online so I can get at it elsewhere should I need to later. Expect some messiness for another week or so as I experiment.
+Ruby Tak utilities and gameplay helpers
 
 ## Usage
 

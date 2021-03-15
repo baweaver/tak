@@ -24,7 +24,8 @@ module Tak
       @black_piece_set = Tak::PieceSet.new(board_size: size)
 
       @piece_sets = {
-        white: white_piece_set, black: black_piece_set
+        white: white_piece_set,
+        black: black_piece_set
       }
     end
 
@@ -42,6 +43,9 @@ module Tak
       end
     end
 
+    # Checks to see if any piece sets are empty
+    #
+    # @return [Boolean]
     def empty_piece_set?
       @piece_sets.any? { |c, piece_set| piece_set.empty? }
     end
@@ -89,16 +93,38 @@ module Tak
       }
     end
 
+    # Checks which color player currently owns a square
+    #
+    # @param x [Integer]
+    # @param y [Integer]
+    #
+    # @return [Symbol]
     def square_owner(x, y)
       return true if @board[x][y].empty?
 
       @board[x][y].last == 'b' ? :black : :white
     end
 
+    # Retrieves the pieces present at a coordinate
+    #
+    # @param x [Integer]
+    # @param y [Integer]
+    #
+    # @return [Array[String]]
     def pieces_at(x, y)
       @board[x][y]
     end
 
+    # Moves pieces according to PTN notation
+    #
+    # @param ptn [String]
+    #   String representation of a Tak move
+    #
+    # @param color [Symbol]
+    #   Which player is making the move
+    #
+    # @return [Boolean]
+    #   Success status
     def move!(ptn, color)
       move = Tak::Move.new(ptn, self, color)
 
@@ -112,14 +138,28 @@ module Tak
       end
     end
 
+    # Distributes pieces from a stack move across the board
+    #
+    # @param move [Tak::Move]
+    #
+    # @return [Boolean]
     def distribute_pieces(move)
       stack = pieces_at(*move.origin).pop(move.size)
 
       move.coordinates.each do |(x, y)|
         @board[x][y].push(stack.pop)
       end
+
+      true
     end
 
+    # Places a piece at a given move coordinate
+    #
+    # @param move [Tak::Move]
+    # @param color [Symbol]
+    #
+    # @return [Boolean]
+    #   Success of placement
     def place_piece(move, color)
       square = pieces_at(*move.origin)
 
